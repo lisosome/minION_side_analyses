@@ -90,19 +90,19 @@ while [[ $# -gt 0 ]];do
 
 done
 
-sif=/orfeo/cephfs/home/burlo/nardone/software/mtdna-server-2/singularity/quay.io-genepi-mtdna-server-2-v2.1.6.img
-res_dir=/orfeo/cephfs/home/burlo/nardone/software/mtdna-server-2/files
+res_dir=/fast/burlo/nardone/mtDNA_resources
+sif=${res_dir}/singularity/quay.io-genepi-mtdna-server-2-v2.1.6.img
 annotation_file=${res_dir}/rCRS_annotation.txt
 ref_mutserve=${res_dir}/rcrs_mutserve.fasta
 ref_mutect2=${res_dir}/mt_contigs.fasta
 
-SINGULARITY_TMPDIR=/fast/burlo/nardone/singularity/sing_temp
-SINGULARITY_CACHEDIR=/fast/burlo/nardone/singularity/cache
+SINGULARITY_TMPDIR=/fast/burlo/${USER}/singularity/sing_temp
+SINGULARITY_CACHEDIR=/fast/burlo/${USER}/singularity/cache
 
 export SINGULARITY_TMPDIR
 export SINGULARITY_CACHEDIR
 
-mutserve=/orfeo/cephfs/home/burlo/nardone/software/mutserve2/mutserve.jar
+mutserve=/${res_dir}/mutserve2/mutserve.jar
 
 for fol in ${outd}/mutserve ${outd}/mutect2 ${outd}/filtering ${outd}/merging ${outd}/annotation;do
     if [ ! -d ${fol} ];then
@@ -249,15 +249,19 @@ testNCreate ${wdir}
 
 filtered=$(ls ${filter_fold}/${sample}.*.filtered.txt | tr "\n" " ")
 
-csvtk concat \
-        -t ${filtered} \
-        -T -o ${wdir}/${sample}.variants.concat.txt \
-        --num-cpus ${threads} && \
-csvtk sort \
-        -t ${wdir}/${sample}.variants.concat.txt \
-        -k ID:N -k Pos:n -k Ref:N -k Type:nr  -k Variant:N \
-        -T -o ${wdir}/${sample}.variants.sorted.txt \
-        --num-cpus ${threads} && \
+singularity exec \
+    -B ${wdir}:/wdir \
+    csvtk concat \
+            -t ${filtered} \
+            -T -o /wdir/${sample}.variants.concat.txt \
+            --num-cpus ${threads} && \
+singularity exec \
+    -B ${wdir}:/wdir \
+    csvtk sort \
+            -t /wdir/${sample}.variants.concat.txt \
+            -k ID:N -k Pos:n -k Ref:N -k Type:nr  -k Variant:N \
+            -T -o /wdir/${sample}.variants.sorted.txt \
+            --num-cpus ${threads} && \
 singularity exec \
     -B ${outd}/merging:/base \
     ${sif} \
