@@ -13,7 +13,7 @@ printHelp(){
     echo "Usage: minION_analyses.sh [options]"
     echo "Options:"
     echo "-h, --help - Show this help."
-    echo "-r, --raw_data - Directory storing miinION raw data"
+    echo "-r, --raw_data - Directory storing minION raw data"
     echo "-m, --mode - Variant calling mode. Choose from [MT, STRC]"
     echo "-o, --outdir - Output Directory"
     echo "-s, --samplesheet - Samplesheet specifying sample in the first column and barcode in the second. The file must be space separated"
