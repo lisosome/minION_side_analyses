@@ -14,9 +14,10 @@ printHelp(){
     echo "Options:"
     echo "-h, --help - Show this help."
     echo "-r, --raw_data - Directory storing minION raw data"
-    echo "-m, --mode - Variant calling mode. Choose from [MT, STRC]"
-    echo "-o, --outdir - Output Directory"
     echo "-s, --samplesheet - Samplesheet specifying sample in the first column and barcode in the second. The file must be space separated"
+    echo "-o, --outdir - Output Directory"
+    echo "-m, --mode - Variant calling mode. Choose from [MT, STRC]"
+    
 }
 
 if [[ $# -eq 0 ]];then 
@@ -44,8 +45,8 @@ while [[ $# -gt 0 ]];do
         shift
         ;;
 
-        -m|--mode)
-        mode=$2
+        -s|--samplesheet)
+        samplesheet=$2
         shift
         ;;
         
@@ -53,8 +54,8 @@ while [[ $# -gt 0 ]];do
         outdir=$2
         ;;
         
-        -s|--samplesheet)
-        samplesheet=$2
+        -m|--mode)
+        mode=$2
         ;;
         
         *)
