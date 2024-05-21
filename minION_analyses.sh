@@ -83,14 +83,14 @@ export SINGULARITY_CACHEDIR
 
 echo "1. Basecalling"
 
-basecall="./src/preprocessing/guppy_gpu_SLURM.sh"
+basecall=$(realpath src/preprocessing/guppy_gpu_SLURM.sh)
 
 basecalling=$(sbatch --parsable -o ${logdir}/preprocessing.log -e ${logdir}/preprocessing.err ${basecall} ${raw_data} ${outdir} BARCODE) 
 echo "Basecalling JOB ID: ${basecalling}"
 
 echo "2. TRIMMING"
 
-trim="./src/preprocessing/LongRead_preprocessing_SLURM.sh"
+trim=$(realpath src/preprocessing/LongRead_preprocessing_SLURM.sh)
 
 trimming=$(sbatch --parsable --dependency=afterok:${basecalling} -o ${logdir}/trimming.log -e ${logdir}/trimming.err ${trim} ${outdir} ${samplesheet})
 echo "Trimming JOB ID: ${trimming}"
@@ -99,13 +99,13 @@ case $mode in
     MT )
 
     echo "3.ALIGNMENT for mtDNA analyses"
-    align="./src/preprocessing/minimap2_SLURM.sh"
+    align=$(realpath src/preprocessing/minimap2_SLURM.sh)
     ref="/fast/burlo/nardone/mtDNA_resources/rcrs_mutserve.fasta"
     alignment=$(sbatch --parsable --dependency=afterok:${trimming} -o ${logdir}/mt_DNA_alignment.log -e ${logdir}/mt_DNA_alignment.err ${align} ${outdir}/2.TRIMMING ${outdir}/3.ALIGNMENT ${ref} ${samplesheet})
     echo "mtDNA alignment JOB ID: ${alignment}"
 
     echo "4.VARIANT.CALLING for mtDNA"
-    call="./src/mtdna/mtDNA_variantCall.sh"
+    call=$(realpath src/mtdna/mtDNA_variantCall.sh)
     if [[ ! -d ${out} ]];then
         mkdir -p ${outdir}/4.VARIANT.CALLING
     fi
@@ -127,7 +127,7 @@ case $mode in
     STRC )
 
     echo "3.ALIGNMENT for STRC analyses"
-    align="./src/preprocessing/minimap2_SLURM.sh"
+    align=$(realpath src/preprocessing/minimap2_SLURM.sh)
     ref="/orfeo/LTS/burlo/LT_storage/nardone/STRC_for_minion/STRC_hg38.fasta"
     alignment=$(sbatch --parsable --dependency=afterok:${trimming} -o ${logdir}/STRC_alignment.log -e ${logdir}/STRC_alignment.err ${align} ${outdir}/2.TRIMMING ${outdir}/3.ALIGNMENT ${ref} ${samplesheet})
     echo "STRC alignment JOB ID: ${alignment}"
@@ -135,7 +135,7 @@ case $mode in
     testNCreate ${outdir}/4.VARIANT.CALLING
 
     echo "4.VARIANT.CALLING for STRC analyses"
-    call="./src/strc/clair3_STRC.sh"
+    call=$(realpath src/strc/clair3_STRC.sh)
     
     declare -A codes=()
     while read line;do
