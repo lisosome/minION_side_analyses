@@ -52,10 +52,12 @@ while [[ $# -gt 0 ]];do
         
         -o|--outdir)
         outdir=$2
+        shift
         ;;
         
         -m|--mode)
         mode=$2
+        shift
         ;;
         
         *)
@@ -115,8 +117,8 @@ case $mode in
       codes[${bar}]=${sample}
     done < ${samplesheet}
 
-    for sample in ${codes[@]};do
-
+    for sam in ${codes[@]};do
+    sample=${codes[${sam}]}
     calling=$(sbatch --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_mt_DNA_variant_calling.log -e ${logdir}/${sample}_mt_DNA_alignment.err ${call} -b ${outdir}/3.ALIGNMENT/${sample}.bam -s ${sample} -o ${outdir}/4.VARIANT.CALLING -t 5)
     echo "mtDNA variant calling for sample ${sample} JOB ID: ${calling}"
     
@@ -143,11 +145,11 @@ case $mode in
     done < ${samplesheet}
 
     
-    for sample in ${codes[@]};do
-
+    for sam in ${codes[@]};do
+    sample=${codes[${sam}]}
     calling=$(sbatch --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_STRC_variant_calling.log -e ${logdir}/${sample}_STRC_alignment.err ${call} ${outdir}/3.ALIGNMENT ${sample} ${ref} ${outdir}/4.VARIANT.CALLING)
     echo "STRC variant calling for sample ${sample} JOB ID: ${calling}"
 
     done
-
-
+    ;;
+esac

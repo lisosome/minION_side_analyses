@@ -30,8 +30,8 @@ while read line;do
   codes[${bar}]=${sample}
 done < ${samplesheet}
 
-for sample in ${codes[@]};do
-
+for sam in ${codes[@]};do
+sample=${codes[${sam}]}
 INPUT_FAST="${sample}.trimmed_and_clean.fastq.gz"
 
 singularity  exec --no-home --no-mount ${PWD} \
