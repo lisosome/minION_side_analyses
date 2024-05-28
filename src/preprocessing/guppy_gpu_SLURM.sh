@@ -16,7 +16,7 @@
 #SBATCH --ntasks-per-node=1
 
 # set max wallclock time
-#SBATCH --time=96:00:00
+#SBATCH --time=18:00:00
 
 # set name of job
 #SBATCH --job-name=guppy

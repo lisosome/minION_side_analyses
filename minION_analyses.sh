@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task 1
 #SBATCH --ntasks-per-node=1
 #SBATCH --time=96:00:00
-
+set -e
 
 printHelp(){
     echo "minION side analyses"
@@ -81,75 +81,89 @@ testNCreate ${SINGULARITY_CACHEDIR}
 export SINGULARITY_TMPDIR
 export SINGULARITY_CACHEDIR
 
+
+BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" 2>/dev/null)" && pwd 2>/dev/null)"
+DIR=${BASE}
+echo $DIR
+preproc_dir=${DIR}/src/preprocessing
+mtdna=${DIR}/src/mtdna
+strc=${DIR}/src/strc
+
+
 echo "1. Basecalling"
 
-basecall=$(realpath src/preprocessing/guppy_gpu_SLURM.sh)
+basecall=${preproc_dir}/guppy_gpu_SLURM.sh
 
-basecalling=$(sbatch --parsable -o ${logdir}/preprocessing.log -e ${logdir}/preprocessing.err ${basecall} ${raw_data} ${outdir} BARCODE) 
+basecalling=$(sbatch -A burlo --parsable -o ${logdir}/preprocessing.log -e ${logdir}/preprocessing.err ${basecall} ${raw_data} ${outdir} BARCODE) 
 echo "Basecalling JOB ID: ${basecalling}"
 
 echo "2. TRIMMING"
 
-trim=$(realpath src/preprocessing/LongRead_preprocessing_SLURM.sh)
+trim=${preproc_dir}/LongRead_preprocessing_SLURM.sh
 
-trimming=$(sbatch --parsable --dependency=afterok:${basecalling} -o ${logdir}/trimming.log -e ${logdir}/trimming.err ${trim} ${outdir} ${samplesheet})
+trimming=$(sbatch -A burlo --parsable --dependency=afterok:${basecalling} -o ${logdir}/trimming.log -e ${logdir}/trimming.err ${trim} ${outdir} ${samplesheet})
 echo "Trimming JOB ID: ${trimming}"
 
 case $mode in
     MT )
 
     echo "3.ALIGNMENT for mtDNA analyses"
-    align=$(realpath src/preprocessing/minimap2_SLURM.sh)
+    align=${preproc_dir}/minimap2_SLURM.sh
     ref="/fast/burlo/nardone/mtDNA_resources/rcrs_mutserve.fasta"
-    alignment=$(sbatch --parsable --dependency=afterok:${trimming} -o ${logdir}/mt_DNA_alignment.log -e ${logdir}/mt_DNA_alignment.err ${align} ${outdir}/2.TRIMMING ${outdir}/3.ALIGNMENT ${ref} ${samplesheet})
+    alignment=$(sbatch -A burlo --parsable --dependency=afterok:${trimming} -o ${logdir}/mt_DNA_alignment.log -e ${logdir}/mt_DNA_alignment.err ${align} ${outdir}/2.TRIMMING ${outdir}/3.ALIGNMENT ${ref} ${samplesheet})
     echo "mtDNA alignment JOB ID: ${alignment}"
 
     echo "4.VARIANT.CALLING for mtDNA"
-    call=$(realpath src/mtdna/mtDNA_variantCall.sh)
+    call=${mtdna}/mtDNA_variantCall.sh
     if [[ ! -d ${out} ]];then
         mkdir -p ${outdir}/4.VARIANT.CALLING
     fi
 
-    declare -A codes=()
-    while read line;do
-      sample=$(echo "$line" | cut -d " " -f1)
-      bar=$(echo "$line" | cut -d " " -f2)
-      codes[${bar}]=${sample}
-    done < ${samplesheet}
+    #declare -A codes=()
+    #while read line;do
+    #  sample=$(echo "$line" | cut -d " " -f1)
+    #  bar=$(echo "$line" | cut -d " " -f2)
+    #  codes[${bar}]=${sample}
+    #done < ${samplesheet}
 
-    for sam in ${codes[@]};do
-    sample=${codes[${sam}]}
-    calling=$(sbatch --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_mt_DNA_variant_calling.log -e ${logdir}/${sample}_mt_DNA_alignment.err ${call} -b ${outdir}/3.ALIGNMENT/${sample}.bam -s ${sample} -o ${outdir}/4.VARIANT.CALLING -t 5)
+    while read line;do
+    
+    sample=$(echo "$line" | cut -d " " -f1)
+    
+    calling=$(sbatch -A burlo --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_mt_DNA_variant_calling.log -e ${logdir}/${sample}_mt_DNA__variant_calling.err ${call} -b ${outdir}/3.ALIGNMENT/${sample}.bam -s ${sample} -o ${outdir}/4.VARIANT.CALLING -t 5)
     echo "mtDNA variant calling for sample ${sample} JOB ID: ${calling}"
     
-    done
+    done < ${samplesheet}
     ;;
     STRC )
 
     echo "3.ALIGNMENT for STRC analyses"
-    align=$(realpath src/preprocessing/minimap2_SLURM.sh)
-    ref="/orfeo/LTS/burlo/LT_storage/nardone/STRC_for_minion/STRC_hg38.fasta"
+    align=${preproc_dir}/minimap2_SLURM.sh
+    ref="/fast/burlo/nardone/STRC_ref/STRC_hg38.fasta"
     alignment=$(sbatch --parsable --dependency=afterok:${trimming} -o ${logdir}/STRC_alignment.log -e ${logdir}/STRC_alignment.err ${align} ${outdir}/2.TRIMMING ${outdir}/3.ALIGNMENT ${ref} ${samplesheet})
     echo "STRC alignment JOB ID: ${alignment}"
 
     testNCreate ${outdir}/4.VARIANT.CALLING
 
     echo "4.VARIANT.CALLING for STRC analyses"
-    call=$(realpath src/strc/clair3_STRC.sh)
+    call=${strc}/clair3_STRC.sh
     
-    declare -A codes=()
-    while read line;do
-      sample=$(echo "$line" | cut -d " " -f1)
-      bar=$(echo "$line" | cut -d " " -f2)
-      codes[${bar}]=${sample}
-    done < ${samplesheet}
+    #declare -A codes=()
+    #while read line;do
+    #  sample=$(echo "$line" | cut -d " " -f1)
+    #  bar=$(echo "$line" | cut -d " " -f2)
+    #  codes[${bar}]=${sample}
+    #done < ${samplesheet}
 
     
-    for sam in ${codes[@]};do
-    sample=${codes[${sam}]}
-    calling=$(sbatch --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_STRC_variant_calling.log -e ${logdir}/${sample}_STRC_alignment.err ${call} ${outdir}/3.ALIGNMENT ${sample} ${ref} ${outdir}/4.VARIANT.CALLING)
+    while read line;do
+
+    sample=$(echo "$line" | cut -d " " -f1)
+
+    
+    calling=$(sbatch -A burlo --parsable --dependency=afterok:${alignment} -o ${logdir}/${sample}_STRC_variant_calling.log -e ${logdir}/${sample}_STRC_variant_calling.err ${call} ${outdir}/3.ALIGNMENT ${sample} ${ref} ${outdir}/4.VARIANT.CALLING)
     echo "STRC variant calling for sample ${sample} JOB ID: ${calling}"
 
-    done
+    done < ${samplesheet}
     ;;
 esac

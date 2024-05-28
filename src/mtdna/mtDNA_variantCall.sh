@@ -242,7 +242,7 @@ testOutput ${filter_fold}/${sample}.${method}.filtered.txt "Filtering ${method} 
 done
 
 # Step 4 merging variants
-source activate /orfeo/cephfs/home/burlo/nardone/miniconda3/envs/csvtk
+#source activate /orfeo/cephfs/home/burlo/nardone/miniconda3/envs/csvtk
 
 wdir=${outd}/merging/work
 testNCreate ${wdir}
@@ -251,12 +251,15 @@ filtered=$(ls ${filter_fold}/${sample}.*.filtered.txt | tr "\n" " ")
 
 singularity exec \
     -B ${wdir}:/wdir \
+    -B ${filter_fold} \
+    ${sif} \
     csvtk concat \
             -t ${filtered} \
             -T -o /wdir/${sample}.variants.concat.txt \
             --num-cpus ${threads} && \
 singularity exec \
     -B ${wdir}:/wdir \
+    ${sif} \
     csvtk sort \
             -t /wdir/${sample}.variants.concat.txt \
             -k ID:N -k Pos:n -k Ref:N -k Type:nr  -k Variant:N \

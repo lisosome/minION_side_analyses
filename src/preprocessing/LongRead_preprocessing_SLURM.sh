@@ -14,31 +14,57 @@
 base=$1 # Basefolder
 samplesheet=$2 # A simple file with no header and the sample code and the corresponding barcode separated by a blank space. E.g. 20-2364 1
 
+ml load singularity
+
 base_in=${base}/1.BASECALLING/pass
 base_out=${base}/2.TRIMMING
 
-declare -A codes=()
-while read line;do
-  sample=$(echo "$line" | cut -d " " -f1)
-  bar=$(echo "$line" | cut -d " " -f2)
-  codes[${bar}]=${sample}
-done < ${samplesheet}
+#declare -A codes=()
+#while read line;do
+#  sample=$(echo "$line" | cut -d " " -f1)
+#  bar=$(echo "$line" | cut -d " " -f2)
+#  codes[${bar}]=${sample}
+#done < ${samplesheet}
 
  
 
-for bar in ${!codes[@]};do
-  sam=${codes[${bar}]}
-  out_fold=${base_out}/${sam}
-  mkdir -p ${out_fold}
-  if [[ ${bar} -lt 10 ]];then
-    workdir=${base_in}/barcode0${bar}
-  else
-    workdir=${base_in}/barcode${bar}
+#for bar in ${!codes[@]};do
+#  sam=${codes[${bar}]}
+#  out_fold=${base_out}/${sam}
+#  mkdir -p ${out_fold}
+#  if [[ ${bar} -lt 10 ]];then
+#    workdir=${base_in}/barcode0${bar}
+#  else
+#    workdir=${base_in}/barcode${bar}
+#  fi
+while read line;do
+
+  sam=$(echo "$line" | cut -d " " -f1)
+  bar=$(echo "$line" | cut -d " " -f2)
+  out_fold="${base_out}/${sam}"
+  
+  if [[ ! -d ${out_fold} ]];then
+    mkdir -p ${out_fold}
   fi
 
+  if [[ ${bar} -lt 10 ]];then
+    workdir=${base_in}/barcode0${bar}
+    fastqs=$(ls -rt ${workdir}/*.fastq.gz | wc -l)
+    echo "Fastq number for sample ${sam}: ${fastqs}"
+    #cd ${workdir};
+    #fastqs=$(ls -rt *.fastq.gz | awk '{print "/workdir/"$0}')
+    #echo "${fastqs}"
+  else
+    workdir=${base_in}/barcode${bar}
+    fastqs=$(ls -rt ${workdir}/*.fastq.gz | wc -l)
+    echo "Fastq number for sample ${sam}: ${fastqs}"
+    #cd ${workdir};
+    #fastqs=$(ls -rt *.fastq.gz | awk '{print "/workdir/"$0}')
+    #echo "${fastqs}"
+  fi
   singularity  exec --no-home --no-mount ${PWD} \
-  -B ${workdir}:/workdir \
+  -B ${workdir} \
   -B ${out_fold}:/out_fold \
   docker://lisosome/minion_side:latest \
-  zcat $(ls -rt /workdir/*.fastq.gz) | NanoLyse | NanoFilt -q 10 -l 500 --headcrop 50 | bgzip -c > /out_fold/${sam}.trimmed_and_clean.fastq.gz
-done
+  zcat $(ls -rt ${workdir}/*.fastq.gz) | NanoLyse | NanoFilt -q 10 -l 500 --headcrop 50 | gzip -c > ${out_fold}/${sam}.trimmed_and_clean.fastq.gz
+done < ${samplesheet}

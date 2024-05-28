@@ -14,42 +14,41 @@ samplesheet=$4
 
 REF_DIR=$(dirname ${ref})
 REF_FASTA=$(basename ${ref})
-INPUT_DIR=$(dirname ${fastq_dir})
+INPUT_DIR=${fastq_dir}
 
 module load singularity
-
+module load samtools
 
 if [[ ! -d ${out} ]];then
   mkdir -p ${out}
 fi
 
-declare -A codes=()
-while read line;do
-  sample=$(echo "$line" | cut -d " " -f1)
-  bar=$(echo "$line" | cut -d " " -f2)
-  codes[${bar}]=${sample}
-done < ${samplesheet}
+#declare -A codes=()
+#while read line;do
+#  sample=$(echo "$line" | cut -d " " -f1)
+#  bar=$(echo "$line" | cut -d " " -f2)
+#  codes[${bar}]=${sample}
+#done < ${samplesheet}
 
-for sam in ${codes[@]};do
-sample=${codes[${sam}]}
+while read line;do
+
+sample=$(echo "$line" | cut -d " " -f1)
 INPUT_FAST="${sample}.trimmed_and_clean.fastq.gz"
 
 singularity  exec --no-home --no-mount ${PWD} \
-  -B ${REF_DIR}:/ref \
-  -B ${INPUT_DIR}:/input \
-  -B ${out}:/outdir \
+  -B ${REF_DIR} \
+  -B ${INPUT_DIR} \
+  -B ${out} \
   docker://lisosome/minion_side:latest \
-minimap2 -y -t 15 -ax map-ont /ref/${REF_FASTA} /input/${sample}/${INPUT_FAST} \
-| samtools addreplacerg -r "@RG\tID:${sample}\tSM:${sample}" \
-| samtools view -@ 15 -b | samtools sort -@ 15 --write-index -o /outdir/${sample}.bam\#\#idx\#\#/outdir/${sample}.bam.bai
+  minimap2 -y -t 15 -ax map-ont ${REF_DIR}/${REF_FASTA} ${INPUT_DIR}/${sample}/${INPUT_FAST} | samtools view -@ 15 -b | samtools addreplacerg -r "@RG\tID:${sample}\tSM:${sample}" -  | samtools sort -@ 15 --write-index -o ${out}/${sample}.bam\#\#idx\#\#${out}/${sample}.bam.bai
 
-if [[ ! -d ${out} ]];then
+if [[ ! -d ${out}/coverage ]];then
   mkdir -p ${out}/coverage
 fi
 
 singularity  exec --no-home --no-mount ${PWD} \
-  -B ${out}:/base \
+  -B ${out} \
   docker://lisosome/minion_side:latest \
-mosdepth -x -n -t 15 /base/coverage/${sample} /base/${sample}.bam
+  mosdepth -x -n -t 15 ${out}/coverage/${sample} ${out}/${sample}.bam
 
-done
+done < ${samplesheet}
