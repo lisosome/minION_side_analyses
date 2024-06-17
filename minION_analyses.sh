@@ -100,8 +100,19 @@ echo "Basecalling JOB ID: ${basecalling}"
 echo "2. TRIMMING"
 
 trim=${preproc_dir}/LongRead_preprocessing_SLURM.sh
-
+#sample_base=$(dirname ${samplesheet})
+#samsheet=$(basename ${samplesheet})
+#ml load singularity
+#trim_command="singularity exec --no-home --no-mount ${PWD} \\
+#-B ${outdir} \\
+#-B ${preproc_dir}:/code \\
+#-B ${sample_base}:/samsheet \\
+#docker://lisosome/minion_side:latest \\
+#/code/LongRead_preprocessing_SLURM.sh ${outdir} /samsheet/${samsheet}"
+#trim_sbatch="sbatch -A burlo --parsable --dependency=afterok:${basecalling} -o ${logdir}/trimming.log -e ${logdir}/trimming.err"
+#sb="${trim_sbatch} ${trim_command}"
 trimming=$(sbatch -A burlo --parsable --dependency=afterok:${basecalling} -o ${logdir}/trimming.log -e ${logdir}/trimming.err ${trim} ${outdir} ${samplesheet})
+#trimming=$(${sb})
 echo "Trimming JOB ID: ${trimming}"
 
 case $mode in
