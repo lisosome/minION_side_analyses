@@ -10,7 +10,7 @@
 #SBATCH --gpus=1
 
 # set run on x MB node only
-#SBATCH --mem-per-cpu=3gb
+#SBATCH --mem=192gb
 
 # set run on bigmem node only
 #SBATCH --cpus-per-task 48
