@@ -63,7 +63,7 @@ while read line;do
     #echo "${fastqs}"
   fi
   #zcat $(ls -rt ${workdir}/*.fastq.gz) > ${out_fold}/to_trim.fastq
-  echo -e "#!/usr/bin/env bash\nzcat $(ls -rt ${workdir}/*.fastq.gz) | NanoLyse | NanoFilt -q 10 -l 500 --headcrop 50 | gzip -c > ${out_fold}/${sam}.trimmed_and_clean.fastq.gz" > ${out_fold}/trimming.sh
+  echo -e "#!/usr/bin/env bash\nzcat \$(ls -rt ${workdir}/*.fastq.gz) | NanoLyse | NanoFilt -q 10 -l 500 --headcrop 50 | gzip -c > ${out_fold}/${sam}.trimmed_and_clean.fastq.gz" > ${out_fold}/trimming.sh
   chmod +x ${out_fold}/trimming.sh
   singularity  exec --no-home --no-mount ${PWD} \
   -B ${out_fold} \
