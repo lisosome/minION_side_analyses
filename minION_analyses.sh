@@ -92,7 +92,7 @@ strc=${DIR}/src/strc
 
 echo "1. Basecalling"
 
-basecall=${preproc_dir}/guppy_cpu_SLURM.sh
+basecall=${preproc_dir}/guppy_gpu_SLURM.sh
 
 basecalling=$(sbatch -A burlo --parsable -o ${logdir}/preprocessing.log -e ${logdir}/preprocessing.err ${basecall} ${raw_data} ${outdir} BARCODE) 
 echo "Basecalling JOB ID: ${basecalling}"

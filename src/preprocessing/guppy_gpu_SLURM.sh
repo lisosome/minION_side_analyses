@@ -6,8 +6,11 @@
 # set partition
 #SBATCH -p GPU
 
+#SBATCH -A burlo
+#SBATCH --gpus=1
+
 # set run on x MB node only
-#SBATCH --mem=192gb
+#SBATCH --mem-per-cpu=3gb
 
 # set run on bigmem node only
 #SBATCH --cpus-per-task 48
@@ -21,10 +24,6 @@
 # set name of job
 #SBATCH --job-name=guppy
 
-# mail alert at start, end and abortion of execution
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user=giuseppegiovanni.nardone@burlo.trieste.it
-
 
 rawdata=$1 # Directory in which are located all the files produced by minION
 baseout=$2 # Directory to use for the analyses
@@ -32,7 +31,10 @@ mode=$3
 
 case $mode in
   SINGLE_SAMPLE)
-module load ont-guppy-gpu/6.5.7
+  module load cuda/11.7
+  CUDA_VISIBLE_DEVICES=1
+  declare CUDA_VISIBLE_DEVICES
+  module load ont-guppy-gpu/6.5.7
 #guppy=/opt/area/shared/programs/x86_64/ont-guppy-gpu/6.2.1/bin/guppy_basecaller
 config=/orfeo/opt/programs/x86/fedora36/ont-guppy-cpu/6.5.7/data/dna_r10.4.1_e8.2_400bps_5khz_sup.cfg
 
@@ -49,7 +51,10 @@ guppy_basecaller -i ${baseout}/0.RAW.DATA -s ${baseout}/1.BASECALLING -c ${confi
 BARCODE)
   kit=SQK-NBD114-24
 
- module load ont-guppy-gpu/6.5.7
+module load cuda/11.7
+CUDA_VISIBLE_DEVICES=0
+declare CUDA_VISIBLE_DEVICES
+module load ont-guppy-gpu/6.5.7
 
 config=/orfeo/opt/programs/x86/fedora36/ont-guppy-cpu/6.5.7/data/dna_r10.4.1_e8.2_400bps_5khz_sup.cfg
 
