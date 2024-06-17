@@ -32,7 +32,7 @@ mode=$3
 case $mode in
   SINGLE_SAMPLE)
   module load cuda/11.7
-  CUDA_VISIBLE_DEVICES=1
+  CUDA_VISIBLE_DEVICES=0
   declare CUDA_VISIBLE_DEVICES
   module load ont-guppy-gpu/6.5.7
 #guppy=/opt/area/shared/programs/x86_64/ont-guppy-gpu/6.2.1/bin/guppy_basecaller
