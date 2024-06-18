@@ -28,7 +28,7 @@ fi
 
 output_dir=${outdir}/${sample_code}
 
-if [[ ! -d ${output_dir} ]];then mkdir -p ${output_dir};done
+if [[ ! -d ${output_dir} ]];then mkdir -p ${output_dir};fi
 
 singularity exec \
     -B ${input_dir} \
