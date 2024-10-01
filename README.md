@@ -10,8 +10,7 @@ The main script "minION_analyses.sh" can be executed directly or submitting a jo
 ./minION_analyses.sh \
     -r {raw_data_folder} \
     -s {samplesheet} \
-    -o {output_directory} \
-    -m {execution_mode}
+    -o {output_directory}
 ```
 
 2. Job submission:
@@ -21,15 +20,13 @@ sbatch -A burlo -o {log_file} -e {err_file} \
     ./minION_analyses.sh \
         -r {raw_data_folder} \
         -s {samplesheet} \
-        -o {output_directory} \
-        -m {execution_mode}
+        -o {output_directory} 
 ```
 
 The flag to be specified are:
 * **-r:** Directory storing the minION-produced raw data. The one that must be uploaded from the minION to Orfeo in order to run the analyses
-* **-s:** Space-separated samplesheet storing the DNA code of the sample in the first column; the barcode in the second column
+* **-s:** Space-separated samplesheet storing the DNA code of the sample in the first column; the barcode in the second column; type of analysis in the third column: select **MT** or **STRC**
 * **-o:** Output directory in which store the analyses' results
-* **-m:** Modality of execution. Choose MT for mithocondrial variant calling; STRC for variant calling of variants in the STRC gene
 
 The pipeline uses several script stored in the *src/* folder to perform the analyses. This folder is divided in three subfolders:
 * **preprocessing:** Storing script for basecalling, trimming and aligning or minION data
