@@ -35,7 +35,7 @@ The pipeline uses several script stored in the *src/* folder to perform the anal
 
 ## Resources
 
-Resources needed to run the minipipe;ine are hardcoded in the scripts and are stored in /fast/burlo/nardone. 
+Resources needed to run the minipipeline are hardcoded in the scripts and are stored in /fast/burlo/nardone. 
 
 **WARNING:** if permission problems arise, contact me at giuseppegiovanni.nardone@burlo.trieste.it or copy the resources to a local folder, and modify permissions using `chmod 777`.
 
